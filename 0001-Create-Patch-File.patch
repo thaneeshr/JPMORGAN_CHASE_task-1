@@ -1,0 +1,105 @@
+From 3f897b3c6b3d6015e45c367efad1f9c8e68b91b5 Mon Sep 17 00:00:00 2001
+From: thaneeshr <chichilithaneesh@gmail.com>
+Date: Tue, 5 May 2020 14:12:34 +0530
+Subject: [PATCH] Create Patch File
+
+---
+ __pycache__/client3.cpython-38.pyc | Bin 0 -> 1041 bytes
+ client3.py                         |  13 +++++++++----
+ server3.py                         |   4 ++--
+ 3 files changed, 11 insertions(+), 6 deletions(-)
+ create mode 100644 __pycache__/client3.cpython-38.pyc
+
+diff --git a/__pycache__/client3.cpython-38.pyc b/__pycache__/client3.cpython-38.pyc
+new file mode 100644
+index 0000000000000000000000000000000000000000..d4cd6b524782df936b10e537bb875ce98d65282e
+GIT binary patch
+literal 1041
+zcmYjQ&2JMq6t`zQnMuDWg|=I14+aU*Nc017sUp}#Dl4QFTa}_7umYoL{L)N2nMrL2
+zsUbauKO{YJWDmRli?4g)&S_6PJ8e~u{J!SRdq4l4=Wu?0hT!^l>D$M>IwAi#=k~%F
+zd5K&9gF+HX3nHl3fe5?~Md&pXOa>y7p{PkFqc23nvL<8H3DjkB8mPZv24<l)repew
+ze2`)e!pS_)lZDA0h$f4`ChU@2(n~tI>$F&cCCpnF_aKIQW7=ZkzE~D3VikUob+`}9
+zumY<cwnD~~k~4$R8AxCiR>#3r?2V-FNMrUpVkdjU2VG<O&8@AXYG*~a(x$nyy|cY_
+zHUM@0doEvmzQ})2LfW`*R)iMAy^CA#pco+sYvh6&X9a6ShHKdWBJe)D@xxJY!A5ix
+zjKUG?Fhmgzn|xnYa?l2z6$P(4+;oAL01_nslobQe+*JG+N>G`>BrY?P^{c!z+(z0|
+z?Nb|@s-GU^(nfuiw_)mM`m{l9)G4aWG$I?F4JrdFK(Mxsx#={uj%ia<xdVMA%1!?N
+z&E00}P=nGf)6Gg~{ki|w?uLPOcf;TZ8&5a-=g(U0B8SpE+w7m)xnnS|5ZAuPg%z~F
+zKw&}`@nKZWVXW<%UoU4nN<D?HwI50_e8^ve;ds=%a%6avX~wfsUfD<dyZg@LYy={{
+z%D6U;{EMlW#XOrJv;$YJfu8mdm|E~}(zKW5Wtt8jzjfqD{z&u8@O7l8`A9$EcvP=_
+z3$z-;#8<++#+q0dsG`V^HWlDq(MHs!zGWuwfnX=PDs4?6@Tw=Gw}*cmytj1E6LHhN
+z%zBWfmgP7Z8)5D-Sen`hXC}3XuPet`x#|O!>r|?j8Os!8($@S)wTc}b?qDi$!u_0n
+tnEpDH<`yAtC~C^e^B!Kh0)AV@kp2}#Lj4o6kOfISiIZ@VazDV8;3t*{2uT0{
+
+literal 0
+HcmV?d00001
+
+diff --git a/client3.py b/client3.py
+index f1771c3..19847a3 100644
+--- a/client3.py
++++ b/client3.py
+@@ -24,7 +24,7 @@ import json
+ import random
+ 
+ # Server API URLs
+-QUERY = "http://localhost:8080/query?id={}"
++QUERY = "http://localhost:5050/query?id={}"
+ 
+ # 500 server request
+ N = 500
+@@ -35,14 +35,17 @@ def getDataPoint(quote):
+ 	stock = quote['stock']
+ 	bid_price = float(quote['top_bid']['price'])
+ 	ask_price = float(quote['top_ask']['price'])
+-	price = bid_price
++	price = (bid_price + ask_price)/2
+ 	return stock, bid_price, ask_price, price
+ 
+ def getRatio(price_a, price_b):
+ 	""" Get ratio of price_a and price_b """
+ 	""" ------------- Update this function ------------- """
+ 	""" Also create some unit tests for this function in client_test.py """
+-	return 1
++	if(price_b == 0):
++		return
++
++	return price_a/price_b
+ 
+ # Main
+ if __name__ == "__main__":
+@@ -52,8 +55,10 @@ if __name__ == "__main__":
+ 		quotes = json.loads(urllib.request.urlopen(QUERY.format(random.random())).read())
+ 
+ 		""" ----------- Update to get the ratio --------------- """
++		prices={}
+ 		for quote in quotes:
+ 			stock, bid_price, ask_price, price = getDataPoint(quote)
++			prices[stock]=price
+ 			print ("Quoted %s at (bid:%s, ask:%s, price:%s)" % (stock, bid_price, ask_price, price))
+ 
+-		print ("Ratio %s" % getRatio(price, price))
++		print ("Ratio %s" % (getRatio(prices['ABC'], prices['DEF'])))
+diff --git a/server3.py b/server3.py
+index 2de4e28..a4eeaf1 100644
+--- a/server3.py
++++ b/server3.py
+@@ -202,7 +202,7 @@ def get(req_handler, routes):
+                 req_handler.wfile.write(bytes(data,  encoding = 'utf-8'))
+                 return
+ 
+-def run(routes, host = '0.0.0.0', port = 8080):
++def run(routes, host = '0.0.0.0', port = 5050):
+     """ Runs a class as a server whose methods have been decorated with
+         @route.
+     """
+@@ -215,7 +215,7 @@ def run(routes, host = '0.0.0.0', port = 8080):
+     thread = threading.Thread(target = server.serve_forever)
+     thread.daemon = True
+     thread.start()
+-    print ('HTTP server started on port 8080')
++    print ('HTTP server started on port 5050')
+     while True:
+         from time import sleep
+         sleep(1)
+-- 
+2.26.2.windows.1
+
